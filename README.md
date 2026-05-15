@@ -1,34 +1,46 @@
-# Q1 — CSP University Timetabling
-This is my solution for Question 1 where I modeled the university timetabling problem as a Constraint Satisfaction Problem (CSP). The goal is to assign each course section to a time slot and room while avoiding clashes (room clashes, instructor clashes, student clashes). I also included a small soft-score at the end based on instructor preferred slots.
+# CSP-based University Course Timetabling Solver
+
+This repository provides a Constraint Satisfaction Problem (CSP) based solver for managing university course timetabling. The goal is to optimally assign each course section to a time slot and room, while respecting physical constraints (room features/capacities) and minimizing schedule conflicts for students and instructors. The code is modular, well-structured, and scalable for custom timetabling needs.
 
 ---
 
-## What the problem looks like (my CSP setup)
+## Features
 
-- Variables: each course section id from `courses.csv` (example: `CS101-01`)
-- Domain: for each course, a list of possible `(slot_id, room_id)` pairs
-- Unary pruning (done once before search): removes obviously impossible pairs, like wrong room feature, not enough capacity, wrong slot duration, and instructor not available (if availability file exists)
-- Binary constraints (checked during search):
-  - Room conflict: two courses can’t use the same room at the same time
-  - Instructor conflict: same instructor can’t teach two courses at the same time
-  - Student conflict: courses that share at least one student can’t be in the same time slot
+- Robust CSP framework for flexible timetabling
+- Multiple search algorithms: Backtracking, Forward Checking, MAC (AC-3), and Min-Conflicts local search
+- Powerful heuristics for efficient solving (MRV, Degree, LCV, etc.)
+- Customizable via CSV input files for courses, rooms, timeslots, students, and (optionally) instructor availability
+- Command-line interface for running solver and generating random instance data
+- GUI built with Tkinter and Matplotlib for visualization
+
+---
+
+## Problem Modeling
+
+- **Variables**: Each course section ID (e.g., `CS101-01`)
+- **Domain**: For each section, a list of possible `(slot_id, room_id)` assignment pairs
+- **Constraints:**
+  - Unary: Exclude clearly invalid assignments (e.g., wrong room features, insufficient capacity, instructor unavailable)
+  - Binary: Prevent conflicts such as
+    - Room conflict: No two classes in same room at the same time
+    - Instructor conflict: No instructor double-booked
+    - Student conflict: Students attending multiple courses can't have overlapping classes
 
 ---
 
 ## Project Structure
 
 ```
-Q1_CSP/
+CSP/
 │
-├── csp.py # Core CSP framework (variables, domains, constraints)
-├── timetable.py # Timetabling CSP: CSV parsing, domain pruning, constraint setup
-├── algorithms.py # All 4 search algorithms
-├── heuristics.py # MRV, Degree, LCV heuristics
-├── metrics.py # Performance tracking, tables, matplotlib plots
-├── generator.py # Random instance generator
-├── experiments.py # All 4 experimental evaluations
-├── main.py # Command-line interface
-├── gui.py # Bonus GUI (Tkinter + matplotlib)
+├── csp.py              # Core CSP framework (variables, domains, constraints)
+├── timetable.py        # Timetabling CSP: CSV parsing, domain pruning, constraint setup
+├── algorithms.py       # All search algorithms
+├── heuristics.py       # MRV, Degree, LCV heuristics
+├── metrics.py          # Performance tracking, tables, and plotting
+├── generator.py        # Random instance generator
+├── main.py             # Command-line interface
+├── gui.py              # GUI application (Tkinter + Matplotlib)
 │
 ├── instances/
 │   └── small/
@@ -38,18 +50,15 @@ Q1_CSP/
 │       ├── students.csv
 │       └── instructor_availability.csv
 │
-├── results/ # Auto-created when experiments run
 ├── README.md
 └── requirements.txt
 ```
 
 ---
 
-## Setup
+## Getting Started
 
-I recommend using a virtual environment, but it’s optional.
-
-### 1) Create and activate venv (optional)
+### 1. Optional: Create and activate a virtual environment
 ```bash
 python -m venv .venv
 
@@ -60,16 +69,16 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2) Install dependencies
+### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
 ---
 
-## How to run
+## Usage
 
-### Solve the default small instance (recommended)
+### Solve the default sample instance
 ```bash
 python main.py --input-dir instances/small --algorithm mac
 ```
@@ -91,116 +100,65 @@ python main.py --input-dir instances/small --algorithm mac --var-heuristic mrv_d
 python main.py --generate --courses 20 --rooms 16 --slots 30 --density 0.5 --tightness 0.5 --output-dir instances/medium
 ```
 
-### Run experiments
-```bash
-python main.py --experiment 1
-python main.py --experiment 2
-python main.py --experiment 3
-python main.py --experiment 4
-python main.py --experiment all
-```
-
-### Launch the GUI (bonus)
+### Launch the GUI
 ```bash
 python gui.py
 ```
 
 ---
 
-## Algorithms implemented
+## Algorithms
 
-- Backtracking
-  - plain recursive backtracking with consistency checks
-- Forward Checking
-  - after assigning a variable, it prunes values from direct neighbours that no longer work
-- MAC (AC-3)
-  - after each assignment, it runs AC-3 style propagation to maintain arc consistency
-- Min-Conflicts
-  - local search, starts with a random full assignment and keeps repairing conflicted variables
+- **Backtracking:** Recursive backtracking with built-in consistency checks.
+- **Forward Checking:** Prunes domains of affected variables after each assignment.
+- **MAC (AC-3):** Maintains arc consistency during search for enhanced efficiency.
+- **Min-Conflicts:** Local search, starts with a random full assignment and resolves conflicts iteratively.
 
 ---
 
-## Heuristics implemented
+## Heuristics
 
-Variable ordering:
-- MRV: picks the course with the smallest remaining domain
-- Degree: picks the course that is connected to the most other unassigned courses
-- MRV + Degree: MRV first, degree as the tie-break
+**Variable Ordering:**
+- MRV (Minimum Remaining Values): Prioritizes the variable with the fewest legal options.
+- Degree: Selects variable most constrained by unassigned neighbors.
+- MRV + Degree: MRV as primary, Degree as tie-breaker.
 
-Value ordering:
-- LCV: tries the value that blocks the fewest choices for neighbours
-
----
-
-## Experiments
-
-All experiments are in `experiments.py` and can be run from `main.py`.
-
-1. Algorithm Comparison  
-   Compares all 4 algorithms across multiple problem sizes.
-
-2. Heuristic Impact  
-   Uses MAC and compares heuristic combos like no heuristics vs MRV vs MRV+Degree vs MRV+Degree+LCV.
-
-3. Phase Transition  
-   Fixes the size and increases tightness (0.1 to 0.9) and shows when the problems start becoming mostly UNSAT.
-
-4. Systematic vs Local Search  
-   Compares MAC against Min-Conflicts on easy, medium, and hard instances.
-
-Plots and summaries are saved in the `results/` folder.
+**Value Ordering:**
+- LCV (Least Constraining Value): Prefers the value that rules out the fewest choices for neighbors.
 
 ---
 
-## Required instructors
+## CSV Input Files
 
-These are included as required by the assignment:
-
-- Mr Aamir Gulzar  
-- Mr Arshad Islam  
-- Maam Marium Hida  
-- Mr Anas Bin Rashid  
-- Mr Hasnain Akhtar  
-- Mr Hasan Mujtaba  
-- Maam Bushra Kanwal  
-
-Extra instructors can also be generated if the instance needs more.
-
----
-
-## CSV files (what each one does)
-
-- courses.csv  
-  course section info, instructor, enrollment, duration, and required room feature
-
-- rooms.csv  
-  room info, capacity, and features (Lab, Projector, Whiteboard)
-
-- timeslots.csv  
-  time slots with days, start time, and duration
-
-- students.csv  
-  students and their enrolled courses (I use this to build the student conflict map)
-
-- instructor_availability.csv  
-  optional. if it exists, it limits instructors to only those slots
+- **courses.csv:** Course section info, instructor, enrollment, session duration, and required room feature.
+- **rooms.csv:** Room data, capacity, and features (e.g., Lab, Projector, Whiteboard).
+- **timeslots.csv:** Time slot IDs, days, start times, durations.
+- **students.csv:** Student IDs and their enrolled courses.
+- **instructor_availability.csv (optional):** Limits instructors to available time slots if provided.
 
 ---
 
 ## Dependencies
 
-See `requirements.txt`. Main ones are:
+The main dependencies are:
 
-- matplotlib  
-  used for saving experiment plots and for charts inside the GUI
-- tkinter  
-  GUI only
+- `matplotlib`: For charts and GUI plotting.
+- `tkinter`: Used for the GUI.
 
-Everything else is standard Python libraries like `csv`, `os`, `time`, etc.
+All other code uses the Python standard library (`csv`, `os`, `time`, etc.). See `requirements.txt` for details.
+
 ---
 
-## Academic Integrity
+## Instructors (Sample Data)
 
-All CSP modeling, algorithms (backtracking, forward checking, MAC, min-conflicts), heuristics, and experiments were implemented by me with the help of lectures. 
+Example instructors included in the provided sample data:
 
-For the GUI/visual part (Tkinter layout and matplotlib embedding), I used AI help to speed up the interface work, but the CSP logic, constraints, and solving code are my own.
+- Mr Aamir Gulzar
+- Mr Arshad Islam
+- Maam Marium Hida
+- Mr Anas Bin Rashid
+- Mr Hasnain Akhtar
+- Mr Hasan Mujtaba
+- Maam Bushra Kanwal
+
+Extra instructors can be generated when needed.
