@@ -1,0 +1,7 @@
+SlotID,Days,StartTime,Duration
+MWF-8,Monday/Wednesday/Friday,08:00,50
+MWF-9,Monday/Wednesday/Friday,09:00,50
+MWF-10,Monday/Wednesday/Friday,10:00,50
+TTh-8,Tuesday/Thursday,08:00,75
+TTh-930,Tuesday/Thursday,09:30,75
+TTh-11,Tuesday/Thursday,11:00,75

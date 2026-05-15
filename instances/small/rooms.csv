@@ -1,0 +1,7 @@
+RoomID,Building,Capacity,Features
+R101,CS Building,50,Lab;Projector;Whiteboard
+R102,CS Building,40,Projector;Whiteboard
+R201,CS Building,45,Projector;Whiteboard
+L301,Lab Building,35,Lab;Projector
+M101,Main Building,80,Projector;Whiteboard
+M201,Main Building,100,Projector;Whiteboard

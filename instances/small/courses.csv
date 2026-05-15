@@ -1,0 +1,12 @@
+CourseID,CourseName,Instructor,Enrollment,Duration,RoomFeatures
+CS101-01,Introduction to Programming,Mr Aamir Gulzar,45,50,Lab
+CS101-02,Introduction to Programming,Mr Arshad Islam,42,50,Lab
+CS201-01,Data Structures,Mr Anas Bin Rashid,38,50,Projector
+CS301-01,Database Systems,Mr Hasnain Akhtar,40,75,Lab
+CS302-01,Software Engineering,Mr Hasan Mujtaba,50,50,Projector
+CS401-01,Artificial Intelligence,Mr Arshad Islam,30,75,Projector
+MATH101-01,Calculus I,Maam Marium Hida,60,50,Whiteboard
+MATH201-01,Calculus II,Maam Marium Hida,55,50,Whiteboard
+MATH301-01,Linear Algebra,Maam Bushra Kanwal,45,50,Whiteboard
+ENG101-01,English Composition,Maam Bushra Kanwal,70,50,Projector
+PHY101-01,Physics I,Mr Hasnain Akhtar,50,75,Lab
