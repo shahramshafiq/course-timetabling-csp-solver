@@ -1,164 +1,134 @@
-# CSP-based University Course Timetabling Solver
+<div align="center">
 
-This repository provides a Constraint Satisfaction Problem (CSP) based solver for managing university course timetabling. The goal is to optimally assign each course section to a time slot and room, while respecting physical constraints (room features/capacities) and minimizing schedule conflicts for students and instructors. The code is modular, well-structured, and scalable for custom timetabling needs.
+# Course Timetabling CSP Solver
 
----
+Course timetabling modelled as a constraint satisfaction problem, with four search algorithms and a Tkinter visualiser.
 
-## Features
+![Python](https://img.shields.io/badge/Python-3-3776AB?style=flat-square&logo=python&logoColor=white)
+![Tkinter](https://img.shields.io/badge/GUI-Tkinter-2E7D32?style=flat-square)
+![Matplotlib](https://img.shields.io/badge/Matplotlib-Charts-11557C?style=flat-square)
+![CSP](https://img.shields.io/badge/Domain-Constraint%20Satisfaction-4B5563?style=flat-square)
 
-- Robust CSP framework for flexible timetabling
-- Multiple search algorithms: Backtracking, Forward Checking, MAC (AC-3), and Min-Conflicts local search
-- Powerful heuristics for efficient solving (MRV, Degree, LCV, etc.)
-- Customizable via CSV input files for courses, rooms, timeslots, students, and (optionally) instructor availability
-- Command-line interface for running solver and generating random instance data
-- GUI built with Tkinter and Matplotlib for visualization
+</div>
 
----
+## Overview
 
-## Problem Modeling
+Assigning university courses to time slots and rooms without clashes is a constraint satisfaction problem. This project treats each course section as a variable whose domain is the set of feasible (time slot, room) pairs, then searches for a complete assignment that avoids room, instructor and student conflicts. Instances are read from CSV files, and the solver can be driven from the command line or from a Tkinter desktop app.
 
-- **Variables**: Each course section ID (e.g., `CS101-01`)
-- **Domain**: For each section, a list of possible `(slot_id, room_id)` assignment pairs
-- **Constraints:**
-  - Unary: Exclude clearly invalid assignments (e.g., wrong room features, insufficient capacity, instructor unavailable)
-  - Binary: Prevent conflicts such as
-    - Room conflict: No two classes in same room at the same time
-    - Instructor conflict: No instructor double-booked
-    - Student conflict: Students attending multiple courses can't have overlapping classes
+## Key Features
 
----
+- Four search algorithms behind one `solve()` entry point: backtracking, forward checking, MAC (AC-3) and min-conflicts local search.
+- Pluggable heuristics: variable ordering (static, MRV, degree, MRV with degree tie-break, random) and value ordering (static, LCV, random).
+- Constraint model built from data: unary pruning on room features, room capacity, slot duration and instructor availability, plus binary constraints for room, instructor and student clashes.
+- CSV-driven input for courses, rooms, time slots, students and optional instructor availability; each course placed in an instructor's preferred slot adds +5 to a reported soft score.
+- Random instance generator with settings for course, room and slot counts, constraint density, tightness and a seed.
+- Run metrics (assignments, backtracks, constraint checks, execution time) and a post-solve check that reports room, instructor and capacity violations.
+- Tkinter app with a colour-coded schedule grid, a step-through animation of the search, run statistics and a built-in CSV editor.
+
+## Tech Stack
+
+| Area | Technology |
+| --- | --- |
+| Language | Python 3 |
+| Search and heuristics | Hand-written backtracking, forward checking, MAC (AC-3), min-conflicts, MRV, degree, LCV |
+| Desktop UI | Tkinter (ttk, Canvas, Treeview) |
+| Charts | Matplotlib (optional) |
+| Data | CSV files read with the `csv` module |
+| Command line | `argparse` |
 
 ## Project Structure
 
+```text
+.
+|-- main.py            # CLI: solve an instance, generate instances, run experiments
+|-- gui.py             # Tkinter app: schedule grid, search animation, stats, CSV editor
+|-- csp.py             # Generic CSP: variables, domains, constraints, consistency helpers
+|-- timetable.py       # CSV loaders, domain pruning, timetabling constraints, result printing
+|-- algorithms.py      # Backtracking, forward checking, MAC (AC-3), min-conflicts
+|-- heuristics.py      # MRV, degree, LCV and static/random orderings
+|-- generator.py       # Random instance generator
+|-- experiments.py     # Benchmark experiments and plots
+|-- metrics.py         # Run metrics, result tables, Matplotlib charts
+|-- requirements.txt
+`-- instances/small/   # Sample instance: five CSV files
 ```
-CSP/
-│
-├── csp.py              # Core CSP framework (variables, domains, constraints)
-├── timetable.py        # Timetabling CSP: CSV parsing, domain pruning, constraint setup
-├── algorithms.py       # All search algorithms
-├── heuristics.py       # MRV, Degree, LCV heuristics
-├── metrics.py          # Performance tracking, tables, and plotting
-├── generator.py        # Random instance generator
-├── main.py             # Command-line interface
-├── gui.py              # GUI application (Tkinter + Matplotlib)
-│
-├── instances/
-│   └── small/
-│       ├── courses.csv
-│       ├── rooms.csv
-│       ├── timeslots.csv
-│       ├── students.csv
-│       └── instructor_availability.csv
-│
-├── README.md
-└── requirements.txt
-```
-
----
 
 ## Getting Started
 
-### 1. Optional: Create and activate a virtual environment
-```bash
-python -m venv .venv
+### Prerequisites
 
+- Python 3 with Tkinter (needed only for the GUI; it ships with most Python installers)
+- pip
+
+No environment variables or API keys are required.
+
+### Installation
+
+```bash
+git clone https://github.com/shahramshafiq/course-timetabling-csp-solver.git
+cd course-timetabling-csp-solver
+
+python -m venv .venv
 # Windows
 .venv\Scripts\activate
-
-# Mac/Linux
+# macOS / Linux
 source .venv/bin/activate
-```
 
-### 2. Install dependencies
-```bash
 pip install -r requirements.txt
 ```
 
----
+### Run
 
-## Usage
-
-### Solve the default sample instance
 ```bash
+# Solve the bundled sample instance with MAC
 python main.py --input-dir instances/small --algorithm mac
-```
 
-### Try other algorithms
-```bash
-python main.py --input-dir instances/small --algorithm backtrack
-python main.py --input-dir instances/small --algorithm fc
-python main.py --input-dir instances/small --algorithm min_conflicts
-```
-
-### Use specific heuristics
-```bash
-python main.py --input-dir instances/small --algorithm mac --var-heuristic mrv_degree --val-heuristic lcv
-```
-
-### Generate a new random instance
-```bash
-python main.py --generate --courses 20 --rooms 16 --slots 30 --density 0.5 --tightness 0.5 --output-dir instances/medium
-```
-
-### Launch the GUI
-```bash
+# Launch the desktop app
 python gui.py
 ```
 
----
+Running `python main.py` with no arguments solves `instances/small` using the defaults.
 
-## Algorithms
+## Usage
 
-- **Backtracking:** Recursive backtracking with built-in consistency checks.
-- **Forward Checking:** Prunes domains of affected variables after each assignment.
-- **MAC (AC-3):** Maintains arc consistency during search for enhanced efficiency.
-- **Min-Conflicts:** Local search, starts with a random full assignment and resolves conflicts iteratively.
+Choose the algorithm and heuristics from the command line:
 
----
+```bash
+python main.py --input-dir instances/small --algorithm backtrack
+python main.py --input-dir instances/small --algorithm fc
+python main.py --input-dir instances/small --algorithm min_conflicts --mc-steps 10000 --seed 42
+python main.py --input-dir instances/small --algorithm mac --var-heuristic mrv_degree --val-heuristic lcv
+```
 
-## Heuristics
+Generate a random instance, then solve it:
 
-**Variable Ordering:**
-- MRV (Minimum Remaining Values): Prioritizes the variable with the fewest legal options.
-- Degree: Selects variable most constrained by unassigned neighbors.
-- MRV + Degree: MRV as primary, Degree as tie-breaker.
+```bash
+python main.py --generate --courses 20 --rooms 16 --slots 30 --density 0.5 --tightness 0.5 --output-dir instances/medium
+python main.py --input-dir instances/medium --algorithm mac
+```
 
-**Value Ordering:**
-- LCV (Least Constraining Value): Prefers the value that rules out the fewest choices for neighbors.
+Options:
 
----
+| Option | Values | Default |
+| --- | --- | --- |
+| `--algorithm` | `backtrack`, `fc`, `mac`, `min_conflicts` (aliases `bt`, `forward_checking`, `ac3`, `mc`) | `mac` |
+| `--var-heuristic` | `none`, `mrv`, `degree`, `mrv_degree`, `random` | `mrv_degree` |
+| `--val-heuristic` | `none`, `lcv`, `random` | `lcv` |
+| `--mc-steps` | maximum min-conflicts steps | `10000` |
+| `--seed` | random seed for min-conflicts and the generator | none |
+| `--experiment` | `1`, `2`, `3`, `4`, `all` | none |
 
-## CSV Input Files
+A solve prints each course with its instructor, slot and room, a room-by-slot grid, and the run metrics. An instance is expected to contain `courses.csv`, `rooms.csv`, `timeslots.csv` and `students.csv`; `instructor_availability.csv` is optional.
 
-- **courses.csv:** Course section info, instructor, enrollment, session duration, and required room feature.
-- **rooms.csv:** Room data, capacity, and features (e.g., Lab, Projector, Whiteboard).
-- **timeslots.csv:** Time slot IDs, days, start times, durations.
-- **students.csv:** Student IDs and their enrolled courses.
-- **instructor_availability.csv (optional):** Limits instructors to available time slots if provided.
+The phase-transition experiment (`python main.py --experiment 3`) generates instances under `instances/tmp_exp/` and saves a plot to `results/exp3_phase_transition.png`.
 
----
+## Limitations and Roadmap
 
-## Dependencies
+- Preferred instructor slots only feed a soft score computed after the search. The solver returns the first complete assignment it finds and does not optimise that score.
+- Each course occupies exactly one (slot, room) pair, and the slot length must equal the course duration. Slots carry their own day pattern (for example MWF or TTh), so there is no support for courses split across several sessions.
+- Constraint lookups scan the full constraint list and every course pair gets a room constraint, so large instances are slow. There is no automated test suite yet.
+- The benchmark runner behind `--experiment` needs a fix: experiments 1, 2 and 4 read a `success` field that the solver does not return. Experiment 3 does not use that code.
 
-The main dependencies are:
+## Author
 
-- `matplotlib`: For charts and GUI plotting.
-- `tkinter`: Used for the GUI.
-
-All other code uses the Python standard library (`csv`, `os`, `time`, etc.). See `requirements.txt` for details.
-
----
-
-## Instructors (Sample Data)
-
-Example instructors included in the provided sample data:
-
-- Mr Aamir Gulzar
-- Mr Arshad Islam
-- Maam Marium Hida
-- Mr Anas Bin Rashid
-- Mr Hasnain Akhtar
-- Mr Hasan Mujtaba
-- Maam Bushra Kanwal
-
-Extra instructors can be generated when needed.
+**Shahram Shafiq** - [GitHub](https://github.com/shahramshafiq) | [LinkedIn](https://www.linkedin.com/in/shahramshafiq/)
